@@ -1,12 +1,21 @@
 {
     "name": "giorgijorji/laravel-tbc-installment",
     "description": "TBC installment for laravel",
+    "keywords": [
+        "giorgijorji",
+        "tbc",
+        "laravel",
+        "installment"
+    ],
     "authors": [
         {
             "name": "Z3R0",
-            "email": "giorgi.jorji@gmail.com"
+            "email": "giorgi.jorji@gmail.com",
+            "role": "Developer"
         }
     ],
+    "homepage": "https://github.com/giorgijorji/laravel-tbc-installment",
+    "license": "MIT",
     "require": {
         "php": "^7.1",
         "guzzlehttp/guzzle": "^7.2",
