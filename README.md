@@ -1,12 +1,16 @@
 # Laravel TBC Installment
 
+[![Latest Stable Version](https://img.shields.io/packagist/v/giorgijorji/laravel-tbc-installment.svg)](https://packagist.org/packages/giorgijorji/laravel-tbc-installment)
+[![Total Downloads](https://img.shields.io/packagist/dt/giorgijorji/laravel-tbc-installment.svg)](https://packagist.org/packages/giorgijorji/laravel-tbc-installment)
+[![Downloads Month](https://img.shields.io/packagist/dm/giorgijorji/laravel-tbc-installment.svg)](https://packagist.org/packages/giorgijorji/laravel-tbc-installment)
+
+
 This package allows you to use TBC Installment in your Laravel application.
 * Version v1.0.0
 ## Table of Contents
 
 - [Installation](#installation)
 - [Getting Access Token](#getting-access-token)
-- [Generating and placing a certificate](#generating-and-placing-a-certificate)
 - [Environment](#environment)
 - [Usage](#usage)
 - [Result Codes](#result-codes)
