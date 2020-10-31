@@ -1,0 +1,28 @@
+{
+    "name": "giorgijorji/laravel-tbc-installment",
+    "description": "TBC installment for laravel",
+    "authors": [
+        {
+            "name": "Z3R0",
+            "email": "giorgi.jorji@gmail.com"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "^7.2",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Giorgijorji\\LaravelTbcInstallment\\" : "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Giorgijorji\\LaravelTbcInstallment\\TbcInstallmentServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
