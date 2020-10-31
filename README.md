@@ -1,6 +1,7 @@
 # Laravel TBC Installment
 
 [![Latest Stable Version](https://img.shields.io/packagist/v/giorgijorji/laravel-tbc-installment.svg)](https://packagist.org/packages/giorgijorji/laravel-tbc-installment)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
 [![Total Downloads](https://img.shields.io/packagist/dt/giorgijorji/laravel-tbc-installment.svg)](https://packagist.org/packages/giorgijorji/laravel-tbc-installment)
 [![Downloads Month](https://img.shields.io/packagist/dm/giorgijorji/laravel-tbc-installment.svg)](https://packagist.org/packages/giorgijorji/laravel-tbc-installment)
 
