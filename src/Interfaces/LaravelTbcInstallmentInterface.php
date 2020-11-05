@@ -27,6 +27,12 @@ interface LaravelTbcInstallmentInterface
      * @param string $invoiceId
      * @param float $priceTotal
      */
+    public function applyInstallmentApplication(string $invoiceId, float $priceTotal): void;
+
+    /**
+     * @param string $invoiceId
+     * @param float $priceTotal
+     */
     public function confirm(string $invoiceId, float $priceTotal): void;
 
     /**

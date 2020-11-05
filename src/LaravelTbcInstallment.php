@@ -156,7 +156,7 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
      * @param float $priceTotal
      * @return  void
      */
-    private function applyInstallmentApplication(string $invoiceId, float $priceTotal): void
+    public function applyInstallmentApplication(string $invoiceId, float $priceTotal): void
     {
         $client = new Client([
             'base_uri' => $this->baseUri,
@@ -193,7 +193,6 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
      */
     public function confirm(string $invoiceId, float $priceTotal): void
     {
-        $this->applyInstallmentApplication($invoiceId, $priceTotal);
         $client = new Client([
             'base_uri' => $this->baseUri,
         ]);
