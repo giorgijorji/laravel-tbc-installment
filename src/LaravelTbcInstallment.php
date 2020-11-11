@@ -188,16 +188,17 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
     /**
      * Confirm tbc installment  Application
      * @param string $invoiceId
+     * @param string $sessionId
      * @param float $priceTotal
      * @return  void
      */
-    public function confirm(string $invoiceId, float $priceTotal): void
+    public function confirm(string $invoiceId, string $sessionId, float $priceTotal): void
     {
         $client = new Client([
             'base_uri' => $this->baseUri,
         ]);
 
-        $url = str_replace('{session-id}', $this->getSessionId(), $this->applicationConfirmEndpoint);
+        $url = str_replace('{session-id}', $sessionId, $this->applicationConfirmEndpoint);
         try {
             $client->request('POST', $url, [
                 'headers' => [

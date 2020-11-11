@@ -79,14 +79,14 @@ $tbcInstallment->addProduct($product);
 * @param string your invoiceId - 
 * The unique value of your system that is attached to the application, for example, is initiated by you
 * Application Id which is in your database.
-* When a customer enters into an installment agreement on the TBC Installment Site, you will receive this InvoceId by email along with other details.
+* When a customer enters into an installment agreement on the TBC Installment Site, you will receive this InvoiceId by email along with other details.
 * invoiceId must identify the application on your side.
 * 
 * @param decimal total price of all Products
 */
-$tbcInstallment->confirm(1, 12.33);
+$tbcInstallment->applyInstallmentApplication(1, 12.33);
 
-# After confirm you can get sessionId and redirect url to tbc installment web page
+# After applyInstallmentApplication you can get sessionId and redirect url to tbc installment web page
 
 $sessionId = $tbcInstallment->getSessionId(); // string - session id for later use to cancel  installment
 $redirectUri = $tbcInstallment->getRedirectUri(); // string - redirect uri to tbc installment webpage
@@ -94,8 +94,12 @@ $redirectUri = $tbcInstallment->getRedirectUri(); // string - redirect uri to tb
 # then you can simply call laravel redirect method
 return redirect($redirectUri);
 
+# After that the application will processed by TBC you will receive this InvoiceId by email along with other details.
+# Only after that you can Confirm or Cancel Installment application via your admin panel or as you wish
+# Confirm Installment application example
+$tbcInstallment->confirm($invoiceId, $sessionId, $priceTotal);
 # Cancel Installment application example, $sessionId is previously saved sessionId
-# $tbcInstallment->cancel($sessionId);
+$tbcInstallment->cancel($sessionId);
 
 # That's all :)
 ```

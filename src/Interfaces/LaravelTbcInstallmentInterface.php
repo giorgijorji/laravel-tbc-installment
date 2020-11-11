@@ -31,9 +31,10 @@ interface LaravelTbcInstallmentInterface
 
     /**
      * @param string $invoiceId
+     * @param string $sessionId
      * @param float $priceTotal
      */
-    public function confirm(string $invoiceId, float $priceTotal): void;
+    public function confirm(string $invoiceId, string $sessionId, float $priceTotal): void;
 
     /**
      * @param string $sessionId
