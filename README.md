@@ -6,8 +6,10 @@
 [![Downloads Month](https://img.shields.io/packagist/dm/giorgijorji/laravel-tbc-installment.svg)](https://packagist.org/packages/giorgijorji/laravel-tbc-installment)
 
 
-This package allows you to use TBC Installment in your Laravel application.
-Package is activly maintaned :) 
+This package allows you to use TBC Installment in your Laravel application. Package is actively maintained :) 
+
+![Laravel TbcPay](giorgijorji-laravel-tbc-installment.png)
+
 ## Table of Contents
 
 - [Installation](#installation)
