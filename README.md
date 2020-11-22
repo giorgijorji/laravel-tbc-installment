@@ -7,6 +7,7 @@
 
 
 This package allows you to use TBC Installment in your Laravel application.
+Package is activly maintaned :) 
 ## Table of Contents
 
 - [Installation](#installation)
