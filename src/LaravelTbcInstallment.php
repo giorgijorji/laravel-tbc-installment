@@ -3,7 +3,11 @@ declare(strict_types=1);
 
 namespace Giorgijorji\LaravelTbcInstallment;
 
+use Giorgijorji\LaravelTbcInstallment\Exceptions\InvalidProductException;
+use Giorgijorji\LaravelTbcInstallment\Exceptions\InvalidProductPriceException;
+use Giorgijorji\LaravelTbcInstallment\Exceptions\ProductsNotFoundException;
 use Giorgijorji\LaravelTbcInstallment\Interfaces\LaravelTbcInstallmentInterface;
+use Giorgijorji\LaravelTbcInstallment\Models\ProductModel;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -44,14 +48,14 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
     /** @var null */
     protected $expiresIn;
 
-    /** @var array */
-    protected $products;
-
     /** @var null */
     protected $redirectUri;
 
     /** @var null */
     protected $sessionId;
+
+    /** @var \Giorgijorji\LaravelTbcInstallment\Models\ProductModel */
+    protected $productModel;
 
     /**
      * LaravelTbcInstallment constructor.
@@ -66,9 +70,9 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
         $this->oAuthAccessToken = null;
         $this->issuedAt = null;
         $this->expiresIn = null;
-        $this->products = [];
         $this->redirectUri = null;
         $this->sessionId = null;
+        $this->productModel = new ProductModel();
     }
 
     /**
@@ -77,9 +81,9 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
      */
     private function processOauth(): void
     {
-            $client = new Client([
-                'base_uri' => $this->baseUri,
-            ]);
+        $client = new Client([
+            'base_uri' => $this->baseUri,
+        ]);
 
         try {
             $response = $client->request('POST', $this->oAuthEndPoint, [
@@ -107,30 +111,49 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
     }
 
     /**
+     * get oAuth token
      * @return string
      */
     private function getOauthToken(): string
     {
         if (empty(session()->get('tbc-installment'))) {
             $this->processOauth();
-            return session()->get('tbc-installment.oAuthAccessToken');
         } else {
             $tokenExpiresAt = (int) session()->get('tbc-installment.issuedAt') + (int) session()->get('tbc-installment.expiresIn');
 
             if ($tokenExpiresAt <= (time() - 1000)) {
                 $this->processOauth();
-                return session()->get('tbc-installment.oAuthAccessToken');
             }
         }
         return session()->get('tbc-installment.oAuthAccessToken');
     }
 
     /**
+     * Add single product array
      * @param array $product
+     * @throws \Giorgijorji\LaravelTbcInstallment\Exceptions\InvalidProductException
      */
     public function addProduct(array $product): void
     {
-        $this->products[] = $product;
+        $result = $this->productModel->pushProduct($product);
+
+        if (!$result) {
+            throw new InvalidProductException();
+        }
+    }
+
+    /**
+     * Add multiple products
+     * @param array $products
+     * @throws \Giorgijorji\LaravelTbcInstallment\Exceptions\InvalidProductException
+     */
+    public function addProducts(array $products): void
+    {
+        $result = $this->productModel->pushProducts($products);
+
+        if (!$result) {
+            throw new InvalidProductException();
+        }
     }
 
     /**
@@ -154,10 +177,20 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
     /**
      * @param string $invoiceId
      * @param float $priceTotal
-     * @return  void
+     * @return array
+     * @throws \Giorgijorji\LaravelTbcInstallment\Exceptions\ProductsNotFoundException
+     * @throws \Giorgijorji\LaravelTbcInstallment\Exceptions\InvalidProductPriceException
      */
-    public function applyInstallmentApplication(string $invoiceId, float $priceTotal): void
+    public function applyInstallmentApplication(string $invoiceId, float $priceTotal): array
     {
+        if ($this->productModel->getProducts()->count() === 0) {
+            throw new ProductsNotFoundException();
+        }
+
+        if (!$this->productModel->validateTotalPrice($priceTotal)) {
+            throw new InvalidProductPriceException();
+        }
+
         $client = new Client([
             'base_uri' => $this->baseUri,
         ]);
@@ -173,15 +206,15 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
                     'priceTotal' => $priceTotal,
                     'campaignId' => (string) config('tbc-installment.campaignId'),
                     'invoiceId' => $invoiceId,
-                    'products' => $this->products,
+                    'products' => $this->productModel->getProducts()->toArray(),
                 ],
             ]);
 
             $this->redirectUri = $response->getHeaders()['Location'][0];
             $this->sessionId = json_decode($response->getBody()->getContents())->sessionId;
+            return $this->transformTbcMessage($response->getBody()->getContents());
         } catch (GuzzleException $e) {
-            // Report Exception
-            report($e);
+            return $this->transformTbcMessage($e->getResponse()->getBody()->getContents());
         }
     }
 
@@ -190,9 +223,9 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
      * @param string $invoiceId
      * @param string $sessionId
      * @param float $priceTotal
-     * @return  void
+     * @return array
      */
-    public function confirm(string $invoiceId, string $sessionId, float $priceTotal): void
+    public function confirm(string $invoiceId, string $sessionId, float $priceTotal): array
     {
         $client = new Client([
             'base_uri' => $this->baseUri,
@@ -200,7 +233,7 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
 
         $url = str_replace('{session-id}', $sessionId, $this->applicationConfirmEndpoint);
         try {
-            $client->request('POST', $url, [
+            $response = $client->request('POST', $url, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->getOauthToken(),
                     'Accept' => 'application/json',
@@ -212,17 +245,17 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
                     'invoiceId' => $invoiceId,
                 ],
             ]);
+            return $this->transformTbcMessage($response->getBody()->getContents());
         } catch (GuzzleException $e) {
-            // Report Exception
-            report($e);
+            return $this->transformTbcMessage($e->getResponse()->getBody()->getContents());
         }
     }
 
     /**
      * @param string $sessionId
-     * @return void
+     * @return array
      */
-    public function cancel(string $sessionId): void
+    public function cancel(string $sessionId): array
     {
         $client = new Client([
             'base_uri' => $this->baseUri,
@@ -230,7 +263,7 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
 
         $url = str_replace('{session-id}', $sessionId, $this->applicationCancelEndpoint);
         try {
-            $client->request('POST', $url, [
+            $response = $client->request('POST', $url, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->getOauthToken(),
                     'Accept' => 'application/json',
@@ -239,9 +272,37 @@ class LaravelTbcInstallment implements LaravelTbcInstallmentInterface
                     'merchantKey' => (string) config('tbc-installment.merchantKey'),
                 ],
             ]);
+            return $this->transformTbcMessage($response->getBody()->getContents());
         } catch (GuzzleException $e) {
-            // Report Exception
-            report($e);
+            return $this->transformTbcMessage($e->getResponse()->getBody()->getContents());
         }
+    }
+
+    /**
+     * Get All Products added
+     * @return array
+     */
+    public function getProducts(): array
+    {
+        return $this->productModel->getProducts()->toArray();
+    }
+
+    protected function transformTbcMessage(string $message)
+    {
+        $message = json_decode($message);
+        if (isset($message->status)) {
+            $message = [
+                'status_code' => $message->status,
+                'message' => $message->detail,
+            ];
+        } else {
+            $message = [
+                'status_code' => 200,
+                'message' => 'ok',
+            ];
+        }
+
+
+        return $message;
     }
 }

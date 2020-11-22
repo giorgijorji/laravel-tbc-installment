@@ -65,7 +65,9 @@ use Giorgijorji\LaravelTbcInstallment\LaravelTbcInstallment;
 
 # Create new instance of LaravelTbcInstallment
 $tbcInstallment = new LaravelTbcInstallment();
-# Product Example | Array
+# Adding Single Product Example | Array
+# Single Product structure and parameter types (name => string, price => float, quantity => integer) are validated upon adding
+# If invalid product structure or parameters provided it will throw InvalidProductException
 $product = [
     'name' => "SampleProduct", // string - product name
     'price' => 12.33, // Value in GEL (decimal numbering); Note that if Quantity is more than 1, you must set total price
@@ -75,42 +77,84 @@ $product = [
 
 $tbcInstallment->addProduct($product);
 
+# Adding Multiple Products Example | Array => (Array)
+# Single Product structure and parameter types (name => string, price => float, quantity => integer) are validated upon adding
+# If invalid product structure or parameters provided will throw InvalidProductException
+$products = [
+    [
+        'name' => "SampleProduct1", // string - product name
+        'price' => 12.33, // Value in GEL (decimal numbering); Note that if Quantity is more than 1, you must set total price
+        'quantity' => 1, // integer - product quantity
+    ],
+    [
+        'name' => "SampleProduct2", // string - product name
+        'price' => 24.66, // Value in GEL (decimal numbering); Note that if Quantity is more than 1, you must set total price
+        'quantity' => 2, // integer - product quantity
+    ],
+];
+# Call AddProducts , that gets array of products
+
+$tbcInstallment->addProducts($products);
+
+# To check or get added products you can simply call getProducts(), which will return array of products
+$addedProducts = $tbcInstallment->getProducts();
+
 /*
 * @param string your invoiceId - 
 * The unique value of your system that is attached to the application, for example, is initiated by you
 * Application Id which is in your database.
 * When a customer enters into an installment agreement on the TBC Installment Site, you will receive this InvoiceId by email along with other details.
-* invoiceId must identify the application on your side.
-* 
+* @param invoiceId must identify the application on your side.
 * @param decimal total price of all Products
+* On apply total price provided and products price sum is validated, else will throw exception
+* On apply if products are empty will throw ProductsNotFoundException
+* On apply if products price total sum and total price not equal it will throw InvalidProductPriceException
 */
-$tbcInstallment->applyInstallmentApplication(1, 12.33);
+$response = $tbcInstallment->applyInstallmentApplication(1, 12.33);
 
 # After applyInstallmentApplication you can get sessionId and redirect url to tbc installment web page
-
-$sessionId = $tbcInstallment->getSessionId(); // string - session id for later use to cancel  installment
-$redirectUri = $tbcInstallment->getRedirectUri(); // string - redirect uri to tbc installment webpage
-# save session id to your database
-# then you can simply call laravel redirect method
-return redirect($redirectUri);
+if ($response['status_code'] === 200) {
+    $sessionId = $tbcInstallment->getSessionId(); // string - session id for later use to cancel  installment
+    $redirectUri = $tbcInstallment->getRedirectUri(); // string - redirect uri to tbc installment webpage
+    # save session id to your database
+    # then you can simply call laravel redirect method
+    return redirect($redirectUri);
+} # else error acquired
 
 # After that the application will processed by TBC you will receive this InvoiceId by email along with other details.
 # Only after that you can Confirm or Cancel Installment application via your admin panel or as you wish
 # Confirm Installment application example
-$tbcInstallment->confirm($invoiceId, $sessionId, $priceTotal);
+$response = $tbcInstallment->confirm($invoiceId, $sessionId, $priceTotal);
+if ($response['status_code'] === 200) {
+ # TODO HERE YOUR STUFF
+} # else error acquired
+
 # Cancel Installment application example, $sessionId is previously saved sessionId
-$tbcInstallment->cancel($sessionId);
+$response = $tbcInstallment->cancel($sessionId);
+if ($response['status_code'] === 200) {
+ # TODO HERE YOUR STUFF
+} # else error acquired
+
+# applyInstallmentApplication, confirm and cancel methods will return status code and message
+# example of response
+# status code 200 means all ok, any other status code is fail of request
+$response = [
+    'status_code' => 200,
+    'message' => 'ok',
+];
 
 # That's all :)
 ```
 ## Result Codes
 
-| Key | Value             | Description                                                                           |
-|-----|-------------------|---------------------------------------------------------------------------------------|
-| 200 | Ok                | Application Confirmed                                                                              |
+| status_code | message             | Description                                                                           |
+|-------------|---------------------|---------------------------------------------------------------------------------------|
+| 200         | Ok                  | Application Confirmed                                                                              |
+| 401         | Unauthorized        | Invalid Token provided for oAuth 
+#### To Add more status
 
 ## TODO
-- Handle validation of products and other stuff, to add custom Exceptions for invalid requests
+- unit tests
 
 ## Credits
 
