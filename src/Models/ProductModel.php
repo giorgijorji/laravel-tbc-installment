@@ -29,10 +29,7 @@ class ProductModel implements ProductModelInterface
      */
     public function validateTotalPrice(float $priceTotal): bool
     {
-        if ($this->getProductsTotalPrice() !== $priceTotal) {
-            return false;
-        }
-        return true;
+        return abs($this->getProductsTotalPrice() - $priceTotal) < 0.00001;
     }
 
     /**
